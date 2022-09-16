@@ -13,7 +13,7 @@ import java.util.Map;
 @Slf4j
 public class UserRepositoryImpl implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
-    private static long USERID = 0;
+    private static long userId = 0;
 
     @Override
     public List<User> findAll() {
@@ -51,7 +51,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private long getId() {
-        USERID += 1;
-        return USERID;
+        userId += 1;
+        return userId;
     }
 }

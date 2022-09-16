@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final ItemMapper itemMapper;
     private final UserService userService;
 
     @Override
