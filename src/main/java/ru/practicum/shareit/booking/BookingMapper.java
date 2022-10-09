@@ -38,7 +38,7 @@ public class BookingMapper {
         );
     }
 
-    public static Booking ShortDtoToBooking(Item item, User user, BookingDtoShort bookingDto) {
+    public static Booking shortDtoToBooking(Item item, User user, BookingDtoShort bookingDto) {
         return new Booking(
                 null,
                 bookingDto.getStart(),

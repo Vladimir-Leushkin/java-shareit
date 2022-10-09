@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @ToString
 public class BookingDtoShort {
     @NotNull
-    private Long ItemId;
+    private Long itemId;
     @NotNull
     private LocalDateTime start;
     @NotNull

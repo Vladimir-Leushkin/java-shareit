@@ -45,7 +45,7 @@ public class BookingServiceImpl implements BookingService {
         User user = userService.findUserById(userId);
         Item item = itemRepository.findById(bookingDto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + bookingDto.getItemId()));
-        Booking booking = BookingMapper.ShortDtoToBooking(item, user, bookingDto);
+        Booking booking = BookingMapper.shortDtoToBooking(item, user, bookingDto);
         if (!item.getIsAvailable()) {
             throw new ValidationException("Вещь недоступна для бронирования");
         }
