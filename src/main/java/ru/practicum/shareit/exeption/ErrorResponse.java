@@ -1,5 +1,8 @@
 package ru.practicum.shareit.exeption;
 
+import lombok.Value;
+
+@Value
 public class ErrorResponse {
     private final String error;
 
