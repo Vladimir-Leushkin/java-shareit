@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.BookingService;
-import ru.practicum.shareit.booking.State;
+import ru.practicum.shareit.booking.*;
+import ru.practicum.shareit.booking.dto.BookingDtoToItem;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.exeption.ValidationException;
 import ru.practicum.shareit.item.comment.CommentMapper;
@@ -61,8 +59,8 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
         log.info("Найдена вещь с id ={}", itemId);
         if (item.getOwner() == userId) {
-            Booking lastBooking = getLastBooking(itemId);
-            Booking nextBooking = getNextBooking(itemId);
+            BookingDtoToItem lastBooking = getLastBooking(itemId);
+            BookingDtoToItem nextBooking = getNextBooking(itemId);
             List<CommentDto> comments = getItemComments(itemId);
             return ItemMapper.toDtoWithBooking(item, lastBooking, nextBooking, comments);
         } else {
@@ -135,14 +133,22 @@ public class ItemServiceImpl implements ItemService {
         return items;
     }
 
-    private Booking getNextBooking(long itemId) {
-        return bookingRepository.findBookingByItem_IdAndStartIsAfter(itemId, LocalDateTime.now())
+    private BookingDtoToItem getNextBooking(long itemId) {
+        Booking booking = bookingRepository.findBookingByItem_IdAndStartIsAfter(itemId, LocalDateTime.now())
                 .stream().min(Comparator.comparing(Booking::getStart)).orElse(null);
+        if (booking == null) {
+            return null;
+        }
+        return BookingMapper.toItemBooking(booking);
     }
 
-    private Booking getLastBooking(long itemId) {
-        return bookingRepository.findBookingByItem_IdAndEndIsBefore(itemId, LocalDateTime.now())
+    private BookingDtoToItem getLastBooking(long itemId) {
+        Booking booking = bookingRepository.findBookingByItem_IdAndEndIsBefore(itemId, LocalDateTime.now())
                 .stream().max(Comparator.comparing(Booking::getEnd)).orElse(null);
+        if (booking == null) {
+            return null;
+        }
+        return BookingMapper.toItemBooking(booking);
     }
 
     private List<CommentDto> getItemComments(long itemId) {

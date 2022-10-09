@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoShort;
+import ru.practicum.shareit.booking.dto.BookingDtoToItem;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -46,6 +47,17 @@ public class BookingMapper {
                 item,
                 user,
                 StatusType.WAITING
+        );
+    }
+
+    public static BookingDtoToItem toItemBooking(Booking booking) {
+        return new BookingDtoToItem(
+                booking.getId(),
+                booking.getStart(),
+                booking.getEnd(),
+                booking.getItem().getId(),
+                booking.getBooker().getId(),
+                booking.getStatus()
         );
     }
 }

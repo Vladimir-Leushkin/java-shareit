@@ -2,7 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.dto.BookingDtoToItem;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
@@ -41,7 +41,7 @@ public class ItemMapper {
         );
     }
 
-    public static ItemDtoWithBooking toDtoWithBooking(Item item, Booking lastBooking, Booking nextBooking, List<CommentDto> comments) {
+    public static ItemDtoWithBooking toDtoWithBooking(Item item, BookingDtoToItem lastBooking, BookingDtoToItem nextBooking, List<CommentDto> comments) {
         return new ItemDtoWithBooking(
                 item.getId(),
                 item.getName(),
