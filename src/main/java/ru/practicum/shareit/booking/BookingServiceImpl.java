@@ -26,12 +26,10 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
 
-
     @Override
     public Booking getById(Long userId, Long bookingId) {
         User user = userService.findUserById(userId);
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Не найдено бронирование с id = " + bookingId));
+        Booking booking = validateBooking(bookingId);
         if (booking.getBooker().getId().equals(user.getId()) || booking.getItem().getOwner().equals(user.getId())) {
             log.info("Найдено бронирование ({}), ", booking);
             return booking;
@@ -43,8 +41,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking addNewBooking(long userId, BookingDtoShort bookingDto) {
         User user = userService.findUserById(userId);
-        Item item = itemRepository.findById(bookingDto.getItemId())
-                .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + bookingDto.getItemId()));
+        Item item = validateItem(bookingDto.getItemId());
         Booking booking = BookingMapper.shortDtoToBooking(item, user, bookingDto);
         if (!item.getIsAvailable()) {
             throw new ValidationException("Вещь недоступна для бронирования");
@@ -65,10 +62,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking patchBooking(long userId, Long bookingId, Boolean approved) {
         userService.findUserById(userId);
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException("Не найдено бронирование с id = " + bookingId));
-        Item item = itemRepository.findById(booking.getItem().getId())
-                .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + booking.getItem().getId()));
+        Booking booking = validateBooking(bookingId);
+        Item item = validateItem(booking.getItem().getId());
         if (booking.getStatus() != StatusType.WAITING) {
             throw new ValidationException("Вещь уже забронирована");
         }
@@ -92,7 +87,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> getAllByBooker(Long userId, String state) {
         userService.findUserById(userId);
-        List<Booking> bookings = bookingRepository.findAllByBooker_idOrderByStartDesc(userId);
+        List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
         if (bookings.isEmpty()) {
             throw new NotFoundException("Ничего не найдено");
         }
@@ -136,5 +131,18 @@ public class BookingServiceImpl implements BookingService {
             default:
                 throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");
         }
+    }
+
+    @Override
+    public Booking validateBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Не найдено бронирование с id = " + bookingId));
+        return booking;
+    }
+
+    private Item validateItem(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
+        return item;
     }
 }

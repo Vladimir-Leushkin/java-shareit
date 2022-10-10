@@ -15,10 +15,10 @@ import java.util.List;
 @NoArgsConstructor
 public class ItemDtoWithBooking extends ItemDto {
 
-    BookingDtoToItem lastBooking;
-    BookingDtoToItem nextBooking;
+    private BookingDtoToItem lastBooking;
+    private BookingDtoToItem nextBooking;
 
-    List<CommentDto> comments;
+    private List<CommentDto> comments;
 
     public ItemDtoWithBooking(Long id, @NotBlank String name, @NotBlank String description, @NotNull Boolean available,
                               BookingDtoToItem lastBooking,

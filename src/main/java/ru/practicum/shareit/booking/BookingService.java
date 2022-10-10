@@ -15,4 +15,5 @@ public interface BookingService {
 
     Booking getById(Long userId, Long bookingId);
 
+    Booking validateBooking(Long bookingId);
 }

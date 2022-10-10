@@ -35,7 +35,6 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final BookingService bookingService;
-    private final ItemMapper itemMapper;
     private final CommentRepository commentRepository;
 
 
@@ -55,8 +54,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDtoWithBooking getItem(long userId, long itemId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
+        Item item = validateItem(itemId);
         log.info("Найдена вещь с id ={}", itemId);
         if (item.getOwner() == userId) {
             BookingDtoToItem lastBooking = getLastBooking(itemId);
@@ -87,8 +85,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item patchItem(long userId, ItemDto itemDto, long itemId) {
         userService.findUserById(userId);
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
+        Item item = validateItem(itemId);
         if (item.getOwner().equals(userId)) {
             if (itemDto.getName() != null) {
                 item.setName(itemDto.getName());
@@ -115,8 +112,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public void deleteItem(long userId, long itemId) {
         userService.findUserById(userId);
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
+        Item item = validateItem(itemId);
         if (item.getOwner().equals(userId)) {
             log.info("Пользователем id {}, удалена вещь ({}), ", userId, item.getName());
             itemRepository.deleteById(itemId);
@@ -134,7 +130,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private BookingDtoToItem getNextBooking(long itemId) {
-        Booking booking = bookingRepository.findBookingByItem_IdAndStartIsAfter(itemId, LocalDateTime.now())
+        Booking booking = bookingRepository.findBookingByItemIdAndStartIsAfter(itemId, LocalDateTime.now())
                 .stream().min(Comparator.comparing(Booking::getStart)).orElse(null);
         if (booking == null) {
             return null;
@@ -143,7 +139,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private BookingDtoToItem getLastBooking(long itemId) {
-        Booking booking = bookingRepository.findBookingByItem_IdAndEndIsBefore(itemId, LocalDateTime.now())
+        Booking booking = bookingRepository.findBookingByItemIdAndEndIsBefore(itemId, LocalDateTime.now())
                 .stream().max(Comparator.comparing(Booking::getEnd)).orElse(null);
         if (booking == null) {
             return null;
@@ -152,7 +148,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private List<CommentDto> getItemComments(long itemId) {
-        List<Comment> comments = commentRepository.findByItem_IdOrderByCreatedDesc(itemId);
+        List<Comment> comments = commentRepository.findByItemIdOrderByCreatedDesc(itemId);
         List<CommentDto> commentDto = comments
                 .stream()
                 .map(comment -> CommentMapper.toDto(comment))
@@ -163,8 +159,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public Comment addComment(Long itemId, long userId, String text) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
+        Item item = validateItem(itemId);
         User user = userService.findUserById(userId);
         try {
             bookingService.getAllByBooker(userId, String.valueOf(State.PAST))
@@ -180,5 +175,10 @@ public class ItemServiceImpl implements ItemService {
         return commentRepository.save(comment);
     }
 
-
+    @Override
+    public Item validateItem(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
+        return item;
+    }
 }
