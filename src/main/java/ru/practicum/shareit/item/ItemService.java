@@ -21,6 +21,4 @@ public interface ItemService {
     List<Item> searchByText(String text);
 
     Comment addComment(Long itemId, long userId, String text);
-
-    Item validateItem(Long itemId);
 }

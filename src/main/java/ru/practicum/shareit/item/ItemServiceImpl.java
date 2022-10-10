@@ -175,8 +175,7 @@ public class ItemServiceImpl implements ItemService {
         return commentRepository.save(comment);
     }
 
-    @Override
-    public Item validateItem(Long itemId) {
+    private Item validateItem(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
         return item;
