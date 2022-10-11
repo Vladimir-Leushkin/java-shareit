@@ -54,7 +54,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDtoWithBooking getItem(long userId, long itemId) {
-        Item item = validateItem(itemId);
+        Item item = findItemById(itemId);
         log.info("Найдена вещь с id ={}", itemId);
         if (item.getOwner() == userId) {
             BookingDtoToItem lastBooking = getLastBooking(itemId);
@@ -85,26 +85,25 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item patchItem(long userId, ItemDto itemDto, long itemId) {
         userService.findUserById(userId);
-        Item item = validateItem(itemId);
-        if (item.getOwner().equals(userId)) {
-            if (itemDto.getName() != null) {
-                item.setName(itemDto.getName());
-            }
-            if (itemDto.getDescription() != null) {
-                item.setDescription(itemDto.getDescription());
-            }
-            if (itemDto.getAvailable() != null) {
-                item.setIsAvailable(itemDto.getAvailable());
-            }
-            try {
-                Item saveItem = itemRepository.save(item);
-                log.info("Пользователем id {}, обновлена вещь ({}), ", userId, item.getName());
-                return saveItem;
-            } catch (DataIntegrityViolationException e) {
-                throw new ValidationException("Указаны не верные параметры вещи");
-            }
-        } else {
+        Item item = findItemById(itemId);
+        if (!item.getOwner().equals(userId)) {
             throw new NotFoundException("Вещь не принадлежит пользователю");
+        }
+        if (itemDto.getName() != null) {
+            item.setName(itemDto.getName());
+        }
+        if (itemDto.getDescription() != null) {
+            item.setDescription(itemDto.getDescription());
+        }
+        if (itemDto.getAvailable() != null) {
+            item.setIsAvailable(itemDto.getAvailable());
+        }
+        try {
+            Item saveItem = itemRepository.save(item);
+            log.info("Пользователем id {}, обновлена вещь ({}), ", userId, item.getName());
+            return saveItem;
+        } catch (DataIntegrityViolationException e) {
+            throw new ValidationException("Указаны не верные параметры вещи");
         }
     }
 
@@ -112,7 +111,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public void deleteItem(long userId, long itemId) {
         userService.findUserById(userId);
-        Item item = validateItem(itemId);
+        Item item = findItemById(itemId);
         if (item.getOwner().equals(userId)) {
             log.info("Пользователем id {}, удалена вещь ({}), ", userId, item.getName());
             itemRepository.deleteById(itemId);
@@ -159,7 +158,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public Comment addComment(Long itemId, long userId, String text) {
-        Item item = validateItem(itemId);
+        Item item = findItemById(itemId);
         User user = userService.findUserById(userId);
         try {
             bookingService.getAllByBooker(userId, String.valueOf(State.PAST))
@@ -175,7 +174,7 @@ public class ItemServiceImpl implements ItemService {
         return commentRepository.save(comment);
     }
 
-    private Item validateItem(Long itemId) {
+    private Item findItemById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
         return item;

@@ -29,7 +29,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking getById(Long userId, Long bookingId) {
         User user = userService.findUserById(userId);
-        Booking booking = validateBooking(bookingId);
+        Booking booking = findBookingById(bookingId);
         if (booking.getBooker().getId().equals(user.getId()) || booking.getItem().getOwner().equals(user.getId())) {
             log.info("Найдено бронирование ({}), ", booking);
             return booking;
@@ -41,17 +41,11 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking addNewBooking(long userId, BookingDtoShort bookingDto) {
         User user = userService.findUserById(userId);
-        Item item = validateItem(bookingDto.getItemId());
+        Item item = findItemById(bookingDto.getItemId());
         Booking booking = BookingMapper.shortDtoToBooking(item, user, bookingDto);
-        if (!item.getIsAvailable()) {
-            throw new ValidationException("Вещь недоступна для бронирования");
-        }
-        if (booking.getEnd().isBefore(booking.getStart()) || booking.getStart().isBefore(LocalDateTime.now())) {
-            throw new ValidationException("Неверно указано время");
-        }
-        if (item.getOwner().equals(userId)) {
-            throw new NotFoundException("Нельзя бронировать свои вещи");
-        }
+        checkIsAvailableItem(item);
+        checkActualTime(booking);
+        checkItemNotOwner(item, userId);
         Booking saveBooking = bookingRepository.save(booking);
         log.info("Пользователем id {}, подан запрос на бронирование вещи ({}), ", userId, item.getName());
         return saveBooking;
@@ -62,17 +56,11 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking patchBooking(long userId, Long bookingId, Boolean approved) {
         userService.findUserById(userId);
-        Booking booking = validateBooking(bookingId);
-        Item item = validateItem(booking.getItem().getId());
-        if (booking.getStatus() != StatusType.WAITING) {
-            throw new ValidationException("Вещь уже забронирована");
-        }
-        if (approved == null) {
-            throw new ValidationException("Ошибка подтверждения");
-        }
-        if (!item.getOwner().equals(userId)) {
-            throw new NotFoundException("Подтвердить бронирование может только собственник вещи");
-        }
+        Booking booking = findBookingById(bookingId);
+        Item item = findItemById(booking.getItem().getId());
+        checkBookingWaiting(booking);
+        checkApprovedFormat(approved);
+        checkItemOwner(item, userId);
         if (approved) {
             booking.setStatus(StatusType.APPROVED);
         } else {
@@ -133,16 +121,51 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    @Override
-    public Booking validateBooking(Long bookingId) {
+    private Booking findBookingById(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Не найдено бронирование с id = " + bookingId));
         return booking;
     }
 
-    private Item validateItem(Long itemId) {
+    private Item findItemById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
         return item;
+    }
+
+    private void checkIsAvailableItem(Item item) {
+        if (!item.getIsAvailable()) {
+            throw new ValidationException("Вещь недоступна для бронирования");
+        }
+    }
+
+    private void checkItemNotOwner(Item item, long userId) {
+        if (item.getOwner().equals(userId)) {
+            throw new NotFoundException("Нельзя бронировать свои вещи");
+        }
+    }
+
+    private void checkItemOwner(Item item, long userId) {
+        if (!item.getOwner().equals(userId)) {
+            throw new NotFoundException("Подтвердить бронирование может только собственник вещи");
+        }
+    }
+
+    private void checkActualTime(Booking booking) {
+        if (booking.getEnd().isBefore(booking.getStart()) || booking.getStart().isBefore(LocalDateTime.now())) {
+            throw new ValidationException("Неверно указано время");
+        }
+    }
+
+    private void checkBookingWaiting(Booking booking) {
+        if (booking.getStatus() != StatusType.WAITING) {
+            throw new ValidationException("Вещь уже забронирована");
+        }
+    }
+
+    private void checkApprovedFormat(Boolean approved) {
+        if (approved == null) {
+            throw new ValidationException("Ошибка подтверждения");
+        }
     }
 }
