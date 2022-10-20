@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDtoShort;
@@ -73,9 +74,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getAllByBooker(Long userId, String state) {
+    public List<Booking> getAllByBooker(Long userId, String state, PageRequest pageRequest) {
         userService.findUserById(userId);
-        List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
+        List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageRequest);
         if (bookings.isEmpty()) {
             throw new NotFoundException("Ничего не найдено");
         }
@@ -85,9 +86,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getAllByOwner(Long userId, String state) {
+    public List<Booking> getAllByOwner(Long userId, String state, PageRequest pageRequest) {
         userService.findUserById(userId);
-        List<Booking> bookings = bookingRepository.findOwnerAll(userId);
+        List<Booking> bookings = bookingRepository.findAllByItemOwnerOrderByStartDesc(userId, pageRequest);
         List<Booking> bookingsState = getBookingsByState(state, bookings);
         log.info("Найдены бронирования вещей {}, пользователя ({}), ", bookingsState, userId);
         return bookingsState;

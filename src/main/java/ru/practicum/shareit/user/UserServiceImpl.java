@@ -3,6 +3,8 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exeption.ConflictException;
@@ -10,8 +12,6 @@ import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.exeption.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
-
-import java.util.List;
 
 @Service
 @Slf4j
@@ -21,10 +21,9 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository repository;
 
-
     @Override
-    public List<User> getAllUsers() {
-        List<User> users = repository.findAll();
+    public Page<User> getAllUsers(PageRequest pageRequest) {
+        Page<User> users = repository.findAll(pageRequest);
         log.info("Найдены пользователи {}, ", users);
         return users;
     }

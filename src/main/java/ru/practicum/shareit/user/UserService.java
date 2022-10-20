@@ -1,14 +1,14 @@
 package ru.practicum.shareit.user;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
-
-import java.util.List;
 
 public interface UserService {
     User saveUser(UserDto userDto);
 
-    List<User> getAllUsers();
+    Page<User> getAllUsers(PageRequest pageRequest);
 
     User updateUser(Long id, UserDto userDto);
 
