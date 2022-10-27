@@ -1,10 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.item.comment.CommentMapper;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -27,8 +24,7 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        PageRequest pageRequest = MyPageRequest.createPageable(from, size, Sort.unsorted());
-        return itemService.getItems(userId, pageRequest);
+        return itemService.getItems(userId, from, size);
     }
 
     @GetMapping("/{itemId}")
@@ -58,8 +54,7 @@ public class ItemController {
             @RequestParam String text,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        PageRequest pageRequest = MyPageRequest.createPageable(from, size, Sort.unsorted());
-        return ItemMapper.toItemsDto(itemService.searchByText(text, pageRequest));
+        return ItemMapper.toItemsDto(itemService.searchByText(text, from, size));
     }
 
     @PostMapping("/{itemId}/comment")

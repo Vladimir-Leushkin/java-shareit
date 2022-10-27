@@ -1,9 +1,6 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -27,16 +24,16 @@ public class UserController {
     @GetMapping
     public List<UserDto> getAllUsers(@PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
                                      @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        PageRequest pageRequest = PageRequest.of(from, size, Sort.unsorted());
         List<UserDto> userDto = new ArrayList<>();
-        Page<User> users = userService.getAllUsers(pageRequest);
+        List<User> users = userService.getAllUsers();
         userDto = users.stream().map(user -> UserMapper.toUserDto(user)).collect(Collectors.toList());
         return userDto;
     }
 
     @PostMapping
     public UserDto saveNewUser(@Valid @RequestBody UserDto userDto) {
-        return UserMapper.toUserDto(userService.saveUser(userDto));
+        UserDto saveUserDto = userService.saveUser(userDto);
+        return saveUserDto;
     }
 
     @PatchMapping("/{id}")
@@ -46,7 +43,9 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserDto findUserById(@PathVariable Long id) {
-        return UserMapper.toUserDto(userService.findUserById(id));
+        User user = userService.findUserById(id);
+        UserDto saveUserDto = UserMapper.toUserDto(user);
+        return saveUserDto;
     }
 
     @DeleteMapping("/{id}")

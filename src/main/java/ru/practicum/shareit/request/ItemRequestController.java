@@ -1,10 +1,7 @@
 package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoWithItems;
 
@@ -20,7 +17,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ItemRequestController {
 
-    final ItemRequestService itemRequestService;
+    private final ItemRequestService itemRequestService;
+    private final ItemRequestMapper itemRequestMapper;
 
     @PostMapping
     public ItemRequestDto addRequest(
@@ -34,8 +32,7 @@ public class ItemRequestController {
             @RequestHeader("X-Sharer-User-Id") @NotNull long userId,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        PageRequest pageRequest = MyPageRequest.createPageable(from, size, Sort.unsorted());
-        return itemRequestService.findAllRequests(userId, pageRequest)
+        return itemRequestService.findAllRequests(userId, from, size)
                 .stream()
                 .map(itemRequest -> ItemRequestMapper.toItemRequestWithItems(itemRequest))
                 .collect(Collectors.toList());

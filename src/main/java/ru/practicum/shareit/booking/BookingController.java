@@ -1,10 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoShort;
 
@@ -21,6 +18,7 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final BookingMapper bookingMapper;
 
     @GetMapping("{bookingId}")
     public BookingDto getBooking(
@@ -46,12 +44,11 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> getAllByBooker(
-            @RequestHeader("X-Sharer-User-Id") @NotNull long userId,
+            @RequestHeader("X-Sharer-User-Id") long userId,
             @RequestParam(defaultValue = "ALL") String state,
-            @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
-            @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        PageRequest pageRequest = MyPageRequest.createPageable(from, size, Sort.unsorted());
-        return BookingMapper.toBookingsDto(bookingService.getAllByBooker(userId, state, pageRequest));
+            @RequestParam(name = "from", defaultValue = "0") Integer from,
+            @RequestParam(name = "size", defaultValue = "10") Integer size) {
+        return BookingMapper.toBookingsDto(bookingService.getAllByBooker(userId, state, from, size));
     }
 
     @GetMapping("owner")
@@ -60,7 +57,6 @@ public class BookingController {
             @RequestParam(defaultValue = "ALL") String state,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        PageRequest pageRequest = MyPageRequest.createPageable(from, size, Sort.unsorted());
-        return BookingMapper.toBookingsDto(bookingService.getAllByOwner(userId, state, pageRequest));
+        return BookingMapper.toBookingsDto(bookingService.getAllByOwner(userId, state, from, size));
     }
 }

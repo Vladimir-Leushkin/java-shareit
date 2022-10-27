@@ -1,12 +1,15 @@
 package ru.practicum.shareit.request;
 
+import org.springframework.stereotype.Component;
 import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoWithItems;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.stream.Collectors;
 
+@Component
 public class ItemRequestMapper {
 
     public static ItemRequest toItemRequest(User user, ItemRequestDto itemRequestDto) {

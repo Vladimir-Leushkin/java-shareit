@@ -18,8 +18,8 @@ import ru.practicum.shareit.item.comment.model.Comment;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.ItemRequestService;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.model.User;
 
@@ -41,10 +41,14 @@ public class ItemServiceImpl implements ItemService {
     private final BookingService bookingService;
     private final CommentRepository commentRepository;
     private final ItemRequestService itemRequestService;
+    private final ItemMapper itemMapper;
+    private final BookingMapper bookingMapper;
+    private final CommentMapper commentMapper;
 
 
     @Override
-    public List<ItemDtoWithBooking> getItems(long userId, PageRequest pageRequest) {
+    public List<ItemDtoWithBooking> getItems(long userId, Integer from, Integer size) {
+        PageRequest pageRequest = createPageable(from, size, Sort.unsorted());
         List<Item> items = itemRepository.findAllByOwnerOrderByIdAsc(userId, pageRequest);
         log.info("Найден список вещей пользователя id ={}", userId);
         List<ItemDtoWithBooking> itemDtoWithBookings = items
@@ -127,7 +131,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> searchByText(String text, PageRequest pageRequest) {
+    public List<Item> searchByText(String text, Integer from, Integer size) {
+        PageRequest pageRequest = createPageable(from, size, Sort.unsorted());
         List<Item> items = new ArrayList<>();
         if (text != null && !text.isBlank()) {
             items = itemRepository.searchByText(text.toLowerCase(), pageRequest);
@@ -136,7 +141,8 @@ public class ItemServiceImpl implements ItemService {
         return items;
     }
 
-    private BookingDtoToItem getNextBooking(long itemId) {
+    @Override
+    public BookingDtoToItem getNextBooking(long itemId) {
         Booking booking = bookingRepository.findBookingByItemIdAndStartIsAfter(itemId, LocalDateTime.now())
                 .stream().min(Comparator.comparing(Booking::getStart)).orElse(null);
         if (booking == null) {
@@ -145,16 +151,20 @@ public class ItemServiceImpl implements ItemService {
         return BookingMapper.toItemBooking(booking);
     }
 
-    private BookingDtoToItem getLastBooking(long itemId) {
+    @Override
+    public BookingDtoToItem getLastBooking(long itemId) {
         Booking booking = bookingRepository.findBookingByItemIdAndEndIsBefore(itemId, LocalDateTime.now())
-                .stream().max(Comparator.comparing(Booking::getEnd)).orElse(null);
+                .stream()
+                .max(Comparator.comparing(Booking::getEnd))
+                .orElse(null);
         if (booking == null) {
             return null;
         }
         return BookingMapper.toItemBooking(booking);
     }
 
-    private List<CommentDto> getItemComments(long itemId) {
+    @Override
+    public List<CommentDto> getItemComments(long itemId) {
         List<Comment> comments = commentRepository.findByItemIdOrderByCreatedDesc(itemId);
         List<CommentDto> commentDto = comments
                 .stream()
@@ -169,8 +179,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = findItemById(itemId);
         User user = userService.findUserById(userId);
         try {
-            PageRequest pageRequest = PageRequest.of(0, 10, Sort.unsorted());
-            bookingService.getAllByBooker(userId, String.valueOf(State.PAST), pageRequest)
+            bookingService.getAllByBooker(userId, String.valueOf(State.PAST), 0, 10)
                     .stream()
                     .filter(booking -> booking.getBooker().getId().equals(userId))
                     .findFirst().orElseThrow(() -> new NotFoundException("Пользователь не пользовался вещью"));
@@ -183,9 +192,23 @@ public class ItemServiceImpl implements ItemService {
         return commentRepository.save(comment);
     }
 
-    private Item findItemById(Long itemId) {
+    @Override
+    public Item findItemById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
         return item;
+    }
+
+    private PageRequest createPageable(Integer from, Integer size, Sort sort) {
+        int page = from / size;
+        if (from == null || size == null) {
+            return null;
+        } else {
+            if (from < 0 || size <= 0) {
+                throw new ValidationException("Указанные значения size/from меньше 0");
+            }
+        }
+        PageRequest pageRequest = PageRequest.of(page, size, sort);
+        return pageRequest;
     }
 }
