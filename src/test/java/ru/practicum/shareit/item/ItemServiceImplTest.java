@@ -28,8 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static ru.practicum.shareit.booking.StatusType.APPROVED;
 import static ru.practicum.shareit.booking.StatusType.CANCELED;
@@ -52,6 +51,7 @@ public class ItemServiceImplTest {
     private Item item;
     private ItemDto itemDto;
     private ItemDtoWithBooking itemDtoWithBooking;
+    private ItemDtoWithBooking itemDtoWithBooking1;
     private ItemRequest itemRequest1;
     private BookingDtoToItem lastDtoBooking;
     private BookingDtoToItem nextDtoBooking;
@@ -98,6 +98,7 @@ public class ItemServiceImplTest {
                 LocalDateTime.of(2022, 3, 1, 12, 0));
         itemDtoWithBooking = ItemMapper.toDtoWithBooking(item, lastDtoBooking, nextDtoBooking,
                 new ArrayList<>(Collections.singletonList(commentDto)));
+        itemDtoWithBooking1 = ItemMapper.toDtoWithBooking(item, new ArrayList<>(Collections.singletonList(commentDto)));
         itemRequest1 = new ItemRequest(1L, "Дрель", user2,
                 LocalDateTime.of(2022, 10, 1, 12, 0),
                 new ArrayList<>());
@@ -129,7 +130,7 @@ public class ItemServiceImplTest {
     void getItems() {
         when(itemRepository.findAllByOwnerOrderByIdAsc(anyLong(), any()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(item)));
-        final List<ItemDtoWithBooking> items = itemService.getItems(user1.getId(), 0,10);
+        final List<ItemDtoWithBooking> items = itemService.getItems(user1.getId(), 0, 10);
         assertNotNull(items);
         assertEquals(1, items.size());
         verify(itemRepository, times(1))
@@ -161,9 +162,9 @@ public class ItemServiceImplTest {
     @Test
     void getItem() {
         findItemById();
-        when(bookingRepository.findBookingByItemIdAndEndIsBefore(item.getId(), LocalDateTime.now()))
+        when(bookingRepository.findBookingByItemIdAndEndIsBefore(anyLong(), any()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(lastBooking)));
-        when(bookingRepository.findBookingByItemIdAndStartIsAfter(item.getId(), LocalDateTime.now()))
+        when(bookingRepository.findBookingByItemIdAndStartIsAfter(anyLong(), any()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(nextBooking)));
         when(commentRepository.findByItemIdOrderByCreatedDesc(item.getId()))
                 .thenReturn(new ArrayList<>(Collections.singletonList(comment)));
@@ -174,6 +175,22 @@ public class ItemServiceImplTest {
                 .findBookingByItemIdAndEndIsBefore(anyLong(), any());
         verify(bookingRepository, times(1))
                 .findBookingByItemIdAndStartIsAfter(anyLong(), any());
+        verify(commentRepository, times(1))
+                .findByItemIdOrderByCreatedDesc(item.getId());
+    }
+
+    @Test
+    void getItemWithOutBooking() {
+        item.setOwner(2L);
+        when(itemRepository.findById(item.getId()))
+                .thenReturn(Optional.ofNullable(item));
+        when(commentRepository.findByItemIdOrderByCreatedDesc(item.getId()))
+                .thenReturn(new ArrayList<>(Collections.singletonList(comment)));
+        final ItemDtoWithBooking item1 = itemService.getItem(user1.getId(), item.getId());
+        assertNotNull(item1);
+        assertEquals(item1, itemDtoWithBooking1);
+        verify(itemRepository, times(1))
+                .findById(item.getId());
         verify(commentRepository, times(1))
                 .findByItemIdOrderByCreatedDesc(item.getId());
     }
@@ -289,13 +306,13 @@ public class ItemServiceImplTest {
 
     @Test
     void searchByText() {
-        when(itemRepository.searchByText(any(),any()))
+        when(itemRepository.searchByText(any(), any()))
                 .thenReturn(List.of(item));
         final List<Item> items = itemService.searchByText("дрель", 0, 10);
         assertNotNull(items);
         assertEquals(item, items.get(0));
         verify(itemRepository, times(1))
-                .searchByText(any(),any());
+                .searchByText(any(), any());
     }
 
     @Test
@@ -342,5 +359,10 @@ public class ItemServiceImplTest {
         PageRequest page = PageRequest.of(0, 10);
         PageRequest page1 = itemService.createPageable(0, 10, Sort.unsorted());
         Assertions.assertEquals(page, page1);
+    }
+
+    @Test
+    void createPageableNull() {
+        assertNull(itemService.createPageable(null, null, Sort.unsorted()));
     }
 }

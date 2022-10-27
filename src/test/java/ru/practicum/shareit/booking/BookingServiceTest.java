@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static ru.practicum.shareit.booking.StatusType.CANCELED;
@@ -67,7 +69,7 @@ public class BookingServiceTest {
         when(bookingRepository.findById(nextBooking.getId()))
                 .thenReturn(Optional.ofNullable(nextBooking));
         final Booking booking = bookingService.findBookingById(nextBooking.getId());
-        Assertions.assertEquals(nextBooking, booking);
+        assertEquals(nextBooking, booking);
         verify(bookingRepository, times(1))
                 .findById(nextBooking.getId());
     }
@@ -79,7 +81,7 @@ public class BookingServiceTest {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> bookingService.findBookingById(lastBooking.getId()));
-        Assertions.assertEquals("Не найдено бронирование с id = " + lastBooking.getId(),
+        assertEquals("Не найдено бронирование с id = " + lastBooking.getId(),
                 exception.getMessage());
         verify(bookingRepository, times(1))
                 .findById(lastBooking.getId());
@@ -90,7 +92,7 @@ public class BookingServiceTest {
         when(itemRepository.findById(item1.getId()))
                 .thenReturn(Optional.ofNullable(item1));
         final Item item = bookingService.findItemById(item1.getId());
-        Assertions.assertEquals(item1, item);
+        assertEquals(item1, item);
         verify(itemRepository, times(1))
                 .findById(item1.getId());
     }
@@ -103,7 +105,7 @@ public class BookingServiceTest {
         when(bookingRepository.save(any()))
                 .thenReturn(nextBooking);
         final Booking booking = bookingService.addNewBooking(user1.getId(), bookingDtoShort);
-        Assertions.assertEquals(nextBooking, booking);
+        assertEquals(nextBooking, booking);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(itemRepository, times(2))
@@ -121,7 +123,7 @@ public class BookingServiceTest {
         when(bookingRepository.save(any()))
                 .thenReturn(nextBooking);
         final Booking booking = bookingService.patchBooking(user2.getId(), nextBooking.getId(), true);
-        Assertions.assertEquals(nextBooking, booking);
+        assertEquals(nextBooking, booking);
         verify(userService, times(1))
                 .findUserById(user2.getId());
         verify(bookingRepository, times(2))
@@ -141,7 +143,7 @@ public class BookingServiceTest {
         when(bookingRepository.save(any()))
                 .thenReturn(nextBooking);
         final Booking booking = bookingService.patchBooking(user2.getId(), nextBooking.getId(), false);
-        Assertions.assertEquals(nextBooking, booking);
+        assertEquals(nextBooking, booking);
         verify(userService, times(1))
                 .findUserById(user2.getId());
         verify(bookingRepository, times(2))
@@ -160,7 +162,7 @@ public class BookingServiceTest {
                 .thenReturn(List.of(nextBooking));
         final List<Booking> booking = bookingService.getAllByBooker(user1.getId(),
                 String.valueOf(WAITING), 0, 10);
-        Assertions.assertEquals(List.of(nextBooking), booking);
+        assertEquals(List.of(nextBooking), booking);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(bookingRepository, times(1))
@@ -176,7 +178,7 @@ public class BookingServiceTest {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> bookingService.getAllByBooker(user1.getId(), String.valueOf(WAITING), 0, 10));
-        Assertions.assertEquals("Ничего не найдено", exception.getMessage());
+        assertEquals("Ничего не найдено", exception.getMessage());
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(bookingRepository, times(1))
@@ -191,7 +193,7 @@ public class BookingServiceTest {
                 .thenReturn(List.of(nextBooking));
         final List<Booking> booking = bookingService.getAllByOwner(user1.getId(),
                 String.valueOf(WAITING), 0, 10);
-        Assertions.assertEquals(List.of(nextBooking), booking);
+        assertEquals(List.of(nextBooking), booking);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(bookingRepository, times(1))
@@ -204,7 +206,7 @@ public class BookingServiceTest {
                 .thenReturn(user1);
         findBookingById();
         final Booking booking = bookingService.getById(user1.getId(), nextBooking.getId());
-        Assertions.assertEquals(nextBooking, booking);
+        assertEquals(nextBooking, booking);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(bookingRepository, times(2))
@@ -220,7 +222,7 @@ public class BookingServiceTest {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> bookingService.getById(user1.getId(), nextBooking.getId()));
-        Assertions.assertEquals("Бронирование закрыто для пользователя", exception.getMessage());
+        assertEquals("Бронирование закрыто для пользователя", exception.getMessage());
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(bookingRepository, times(2))
@@ -233,7 +235,7 @@ public class BookingServiceTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.checkIsAvailableItem(item1));
-        Assertions.assertEquals("Вещь недоступна для бронирования", exception.getMessage());
+        assertEquals("Вещь недоступна для бронирования", exception.getMessage());
     }
 
     @Test
@@ -242,7 +244,7 @@ public class BookingServiceTest {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> bookingService.checkItemNotOwner(item1, user1.getId()));
-        Assertions.assertEquals("Нельзя бронировать свои вещи", exception.getMessage());
+        assertEquals("Нельзя бронировать свои вещи", exception.getMessage());
     }
 
     @Test
@@ -250,7 +252,7 @@ public class BookingServiceTest {
         final NotFoundException exception = Assertions.assertThrows(
                 NotFoundException.class,
                 () -> bookingService.checkItemOwner(item1, user1.getId()));
-        Assertions.assertEquals("Подтвердить бронирование может только собственник вещи", exception.getMessage());
+        assertEquals("Подтвердить бронирование может только собственник вещи", exception.getMessage());
     }
 
     @Test
@@ -258,7 +260,7 @@ public class BookingServiceTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.checkActualTime(lastBooking));
-        Assertions.assertEquals("Неверно указано время", exception.getMessage());
+        assertEquals("Неверно указано время", exception.getMessage());
     }
 
     @Test
@@ -266,7 +268,7 @@ public class BookingServiceTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.checkBookingWaiting(lastBooking));
-        Assertions.assertEquals("Вещь уже забронирована", exception.getMessage());
+        assertEquals("Вещь уже забронирована", exception.getMessage());
     }
 
     @Test
@@ -274,7 +276,7 @@ public class BookingServiceTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.checkApprovedFormat(null));
-        Assertions.assertEquals("Ошибка подтверждения", exception.getMessage());
+        assertEquals("Ошибка подтверждения", exception.getMessage());
     }
 
     @Test
@@ -282,13 +284,18 @@ public class BookingServiceTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.createPageable(-1, -1, Sort.unsorted()));
-        Assertions.assertEquals("Указанные значения size/from меньше 0", exception.getMessage());
+        assertEquals("Указанные значения size/from меньше 0", exception.getMessage());
     }
 
     @Test
     void createPageable() {
         PageRequest page = PageRequest.of(0, 10);
         PageRequest page1 = bookingService.createPageable(0, 10, Sort.unsorted());
-        Assertions.assertEquals(page, page1);
+        assertEquals(page, page1);
+    }
+
+    @Test
+    void createPageableNull() {
+        assertNull(bookingService.createPageable(null, null, Sort.unsorted()));
     }
 }

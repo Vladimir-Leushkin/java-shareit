@@ -20,8 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -149,5 +148,10 @@ public class ItemRequestServiceImplTest {
         PageRequest page = PageRequest.of(0, 10);
         PageRequest page1 = itemRequestService.createPageable(0, 10, Sort.unsorted());
         Assertions.assertEquals(page, page1);
+    }
+
+    @Test
+    void createPageableNull() {
+        assertNull(itemRequestService.createPageable(null, null, Sort.unsorted()));
     }
 }

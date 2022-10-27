@@ -82,11 +82,30 @@ public class ItemControllerTest {
                 LocalDateTime.of(2022, 3, 1, 12, 0));
         itemDtoWithBooking = new ItemDtoWithBooking(1L, "Дрель", "дрель ударная", true,
                 lastDtoBooking, nextDtoBooking, new ArrayList<>(Collections.singletonList(commentDto)));
+        itemRequest1 = new ItemRequest(1L, "Дрель", user2,
+                LocalDateTime.of(2022, 10, 1, 12, 0),
+                new ArrayList<>());
 
     }
 
     @Test
     void addItem() throws Exception {
+        when(itemService.addNewItem(user1.getId(), itemDto1)).thenReturn(item1);
+
+        mvc.perform(post("/items")
+                        .content(mapper.writeValueAsString(itemDto1))
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(itemDto1)));
+    }
+
+    @Test
+    void addItemWithRequest() throws Exception {
+        item1.setRequest(itemRequest1);
+        itemDto1.setRequestId(1L);
         when(itemService.addNewItem(user1.getId(), itemDto1)).thenReturn(item1);
 
         mvc.perform(post("/items")

@@ -67,7 +67,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     protected PageRequest createPageable(Integer from, Integer size, Sort sort) {
-        int page = from / size;
         if (from == null || size == null) {
             return null;
         } else {
@@ -75,6 +74,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 throw new ValidationException("Указанные значения size/from меньше 0");
             }
         }
+        int page = from / size;
         PageRequest pageRequest = PageRequest.of(page, size, sort);
         return pageRequest;
     }

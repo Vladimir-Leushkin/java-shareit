@@ -18,6 +18,7 @@ import java.util.List;
 public class ItemController {
 
     private final ItemService itemService;
+    private final ItemMapper itemMapper;
 
     @GetMapping
     public List<ItemDtoWithBooking> getItems(
