@@ -3,6 +3,8 @@ package ru.practicum.shareit.item;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.*;
 import ru.practicum.shareit.booking.dto.BookingDtoToItem;
 import ru.practicum.shareit.exeption.NotFoundException;
@@ -325,5 +327,20 @@ public class ItemServiceImplTest {
                 .getAllByBooker(user1.getId(), String.valueOf(State.PAST), 0, 10);
         verify(commentRepository, times(1))
                 .save(any());
+    }
+
+    @Test
+    void createPageableException() {
+        final ValidationException exception = Assertions.assertThrows(
+                ValidationException.class,
+                () -> itemService.createPageable(-1, -1, Sort.unsorted()));
+        Assertions.assertEquals("Указанные значения size/from меньше 0", exception.getMessage());
+    }
+
+    @Test
+    void createPageable() {
+        PageRequest page = PageRequest.of(0, 10);
+        PageRequest page1 = itemService.createPageable(0, 10, Sort.unsorted());
+        Assertions.assertEquals(page, page1);
     }
 }

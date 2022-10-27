@@ -1,9 +1,14 @@
 package ru.practicum.shareit.request;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.exeption.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserService;
@@ -107,6 +112,19 @@ public class ItemRequestServiceImplTest {
     }
 
     @Test
+    void findRequestByWrongId() {
+        when(itemRequestRepository.findById(itemRequest1.getId()))
+                .thenThrow(new NotFoundException("Не найден запрос с id = " + itemRequest1.getId()));
+        final NotFoundException exception = Assertions.assertThrows(
+                NotFoundException.class,
+                () -> itemRequestService.findRequestById(itemRequest1.getId()));
+        Assertions.assertEquals("Не найден запрос с id = " + itemRequest1.getId(),
+                exception.getMessage());
+        verify(itemRequestRepository, times(1))
+                .findById(itemRequest1.getId());
+    }
+
+    @Test
     void getRequest() {
         when(userService.findUserById(user1.getId()))
                 .thenReturn(user1);
@@ -116,5 +134,20 @@ public class ItemRequestServiceImplTest {
         assertEquals(saveItemRequest, itemRequest1);
         verify(userService, times(1))
                 .findUserById(user1.getId());
+    }
+
+    @Test
+    void createPageableException() {
+        final ValidationException exception = Assertions.assertThrows(
+                ValidationException.class,
+                () -> itemRequestService.createPageable(-1, -1, Sort.unsorted()));
+        Assertions.assertEquals("Указанные значения size/from меньше 0", exception.getMessage());
+    }
+
+    @Test
+    void createPageable() {
+        PageRequest page = PageRequest.of(0, 10);
+        PageRequest page1 = itemRequestService.createPageable(0, 10, Sort.unsorted());
+        Assertions.assertEquals(page, page1);
     }
 }

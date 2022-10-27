@@ -175,7 +175,7 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private PageRequest createPageable(Integer from, Integer size, Sort sort) {
+    protected PageRequest createPageable(Integer from, Integer size, Sort sort) {
         int page = from / size;
         if (from == null || size == null) {
             return null;
