@@ -3,8 +3,7 @@ package ru.practicum.shareit.item;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.booking.*;
 import ru.practicum.shareit.booking.dto.BookingDtoToItem;
 import ru.practicum.shareit.exeption.NotFoundException;
@@ -28,7 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 import static ru.practicum.shareit.booking.StatusType.APPROVED;
 import static ru.practicum.shareit.booking.StatusType.CANCELED;
@@ -43,6 +43,7 @@ public class ItemServiceImplTest {
     private ItemMapper itemMapper;
     private BookingMapper bookingMapper;
     private CommentMapper commentMapper;
+    private MyPageRequest myPageRequest;
     private ItemServiceImpl itemService;
 
     private User user1;
@@ -71,9 +72,9 @@ public class ItemServiceImplTest {
         itemMapper = mock(ItemMapper.class);
         bookingMapper = mock(BookingMapper.class);
         commentMapper = mock(CommentMapper.class);
-
+        myPageRequest = mock(MyPageRequest.class);
         itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, bookingService,
-                commentRepository, itemRequestService, itemMapper, bookingMapper, commentMapper);
+                commentRepository, itemRequestService, itemMapper, bookingMapper, commentMapper, myPageRequest);
 
         userDto = new UserDto(1L, "John", "john.doe@mail.com");
         user1 = new User(1L, "John", "john.doe@mail.com");
@@ -170,7 +171,7 @@ public class ItemServiceImplTest {
                 .thenReturn(new ArrayList<>(Collections.singletonList(comment)));
         final ItemDtoWithBooking item1 = itemService.getItem(user1.getId(), item.getId());
         assertNotNull(item1);
-        assertEquals(item1, itemDtoWithBooking);
+        assertEquals(itemDtoWithBooking, item1);
         verify(bookingRepository, times(1))
                 .findBookingByItemIdAndEndIsBefore(anyLong(), any());
         verify(bookingRepository, times(1))
@@ -188,7 +189,7 @@ public class ItemServiceImplTest {
                 .thenReturn(new ArrayList<>(Collections.singletonList(comment)));
         final ItemDtoWithBooking item1 = itemService.getItem(user1.getId(), item.getId());
         assertNotNull(item1);
-        assertEquals(item1, itemDtoWithBooking1);
+        assertEquals(itemDtoWithBooking, item1);
         verify(itemRepository, times(1))
                 .findById(item.getId());
         verify(commentRepository, times(1))
@@ -203,7 +204,7 @@ public class ItemServiceImplTest {
                 .thenReturn(item);
         final Item saveItem = itemService.addNewItem(user1.getId(), itemDto);
         assertNotNull(saveItem);
-        assertEquals(saveItem, item);
+        assertEquals(item, saveItem);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(itemRepository, times(1))
@@ -238,7 +239,7 @@ public class ItemServiceImplTest {
                 .thenReturn(item);
         final Item saveItem = itemService.addNewItem(user1.getId(), itemDto);
         assertNotNull(saveItem);
-        assertEquals(saveItem, item);
+        assertEquals(item, saveItem);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(itemRequestService, times(1))
@@ -256,7 +257,7 @@ public class ItemServiceImplTest {
                 .thenReturn(item);
         final Item saveItem = itemService.patchItem(user1.getId(), itemDto, item.getId());
         assertNotNull(saveItem);
-        assertEquals(saveItem, item);
+        assertEquals(item, saveItem);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(itemRepository, times(1))
@@ -346,23 +347,4 @@ public class ItemServiceImplTest {
                 .save(any());
     }
 
-    @Test
-    void createPageableException() {
-        final ValidationException exception = Assertions.assertThrows(
-                ValidationException.class,
-                () -> itemService.createPageable(-1, -1, Sort.unsorted()));
-        Assertions.assertEquals("Указанные значения size/from меньше 0", exception.getMessage());
-    }
-
-    @Test
-    void createPageable() {
-        PageRequest page = PageRequest.of(0, 10);
-        PageRequest page1 = itemService.createPageable(0, 10, Sort.unsorted());
-        Assertions.assertEquals(page, page1);
-    }
-
-    @Test
-    void createPageableNull() {
-        assertNull(itemService.createPageable(null, null, Sort.unsorted()));
-    }
 }

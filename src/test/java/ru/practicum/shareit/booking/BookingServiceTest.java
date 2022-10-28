@@ -3,8 +3,7 @@ package ru.practicum.shareit.booking;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.booking.dto.BookingDtoShort;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.exeption.ValidationException;
@@ -19,9 +18,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static ru.practicum.shareit.booking.State.*;
 import static ru.practicum.shareit.booking.StatusType.CANCELED;
 import static ru.practicum.shareit.booking.StatusType.WAITING;
 
@@ -31,6 +30,8 @@ public class BookingServiceTest {
     private ItemRepository itemRepository;
     private BookingMapper bookingMapper;
     private BookingServiceImpl bookingService;
+
+    private MyPageRequest myPageRequest;
 
     private User user1;
     private User user2;
@@ -46,8 +47,8 @@ public class BookingServiceTest {
         userService = mock(UserService.class);
         bookingRepository = mock(BookingRepository.class);
         bookingMapper = mock(BookingMapper.class);
-
-        bookingService = new BookingServiceImpl(userService, bookingRepository, itemRepository, bookingMapper);
+        myPageRequest = mock(MyPageRequest.class);
+        bookingService = new BookingServiceImpl(userService, bookingRepository, itemRepository, bookingMapper, myPageRequest);
 
         user1 = new User(1L, "John", "john.doe@mail.com");
         user2 = new User(2L, "User", "user@mail.com");
@@ -155,7 +156,7 @@ public class BookingServiceTest {
     }
 
     @Test
-    void getAllByBooker() {
+    void getAllByBookerWaiting() {
         when(userService.findUserById(user1.getId()))
                 .thenReturn(user1);
         when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong(), any()))
@@ -163,6 +164,51 @@ public class BookingServiceTest {
         final List<Booking> booking = bookingService.getAllByBooker(user1.getId(),
                 String.valueOf(WAITING), 0, 10);
         assertEquals(List.of(nextBooking), booking);
+        verify(userService, times(1))
+                .findUserById(user1.getId());
+        verify(bookingRepository, times(1))
+                .findAllByBookerIdOrderByStartDesc(anyLong(), any());
+    }
+
+    @Test
+    void getAllByBookerFuture() {
+        when(userService.findUserById(user1.getId()))
+                .thenReturn(user1);
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(nextBooking));
+        final List<Booking> booking = bookingService.getAllByBooker(user1.getId(),
+                String.valueOf(FUTURE), 0, 10);
+        assertEquals(List.of(nextBooking), booking);
+        verify(userService, times(1))
+                .findUserById(user1.getId());
+        verify(bookingRepository, times(1))
+                .findAllByBookerIdOrderByStartDesc(anyLong(), any());
+    }
+
+    @Test
+    void getAllByBookerPast() {
+        when(userService.findUserById(user1.getId()))
+                .thenReturn(user1);
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(lastBooking));
+        final List<Booking> booking = bookingService.getAllByBooker(user1.getId(),
+                String.valueOf(PAST), 0, 10);
+        assertEquals(List.of(lastBooking), booking);
+        verify(userService, times(1))
+                .findUserById(user1.getId());
+        verify(bookingRepository, times(1))
+                .findAllByBookerIdOrderByStartDesc(anyLong(), any());
+    }
+
+    @Test
+    void getAllByBookerCurrent() {
+        when(userService.findUserById(user1.getId()))
+                .thenReturn(user1);
+        when(bookingRepository.findAllByBookerIdOrderByStartDesc(anyLong(), any()))
+                .thenReturn(List.of(lastBooking));
+        final List<Booking> booking = bookingService.getAllByBooker(user1.getId(),
+                String.valueOf(CURRENT), 0, 10);
+        assertEquals(new ArrayList<>(), booking);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(bookingRepository, times(1))
@@ -279,23 +325,4 @@ public class BookingServiceTest {
         assertEquals("Ошибка подтверждения", exception.getMessage());
     }
 
-    @Test
-    void createPageableException() {
-        final ValidationException exception = Assertions.assertThrows(
-                ValidationException.class,
-                () -> bookingService.createPageable(-1, -1, Sort.unsorted()));
-        assertEquals("Указанные значения size/from меньше 0", exception.getMessage());
-    }
-
-    @Test
-    void createPageable() {
-        PageRequest page = PageRequest.of(0, 10);
-        PageRequest page1 = bookingService.createPageable(0, 10, Sort.unsorted());
-        assertEquals(page, page1);
-    }
-
-    @Test
-    void createPageableNull() {
-        assertNull(bookingService.createPageable(null, null, Sort.unsorted()));
-    }
 }

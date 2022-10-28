@@ -33,7 +33,7 @@ import static ru.practicum.shareit.booking.StatusType.WAITING;
 public class BookingControllerTest {
 
     @MockBean
-    BookingServiceImpl bookingService;
+    private BookingServiceImpl bookingService;
     @Autowired
     private ObjectMapper mapper;
     @Autowired
@@ -48,8 +48,6 @@ public class BookingControllerTest {
 
     @BeforeEach
     void beforeEach() {
-
-
         user1 = new User(1L, "John", "john.doe@mail.com");
         user2 = new User(2L, "User", "user@mail.com");
         item1 = new Item(1L, "Дрель", "дрель ударная", true,

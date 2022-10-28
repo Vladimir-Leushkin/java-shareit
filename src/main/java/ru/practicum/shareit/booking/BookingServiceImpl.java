@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.booking.dto.BookingDtoShort;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.exeption.ValidationException;
@@ -28,6 +29,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final BookingMapper bookingMapper;
+    private final MyPageRequest myPageRequest;
 
     @Override
     public Booking getById(Long userId, Long bookingId) {
@@ -77,7 +79,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getAllByBooker(Long userId, String state, Integer from, Integer size) {
-        PageRequest pageRequest = createPageable(from, size, Sort.unsorted());
+        PageRequest pageRequest = myPageRequest.createPageable(from, size, Sort.unsorted());
         userService.findUserById(userId);
         List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageRequest);
         if (bookings.isEmpty()) {
@@ -90,7 +92,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getAllByOwner(Long userId, String state, Integer from, Integer size) {
-        PageRequest pageRequest = createPageable(from, size, Sort.unsorted());
+        PageRequest pageRequest = myPageRequest.createPageable(from, size, Sort.unsorted());
         userService.findUserById(userId);
         List<Booking> bookings = bookingRepository.findAllByItemOwnerOrderByStartDesc(userId, pageRequest);
         List<Booking> bookingsState = getBookingsByState(state, bookings);
@@ -175,16 +177,4 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    protected PageRequest createPageable(Integer from, Integer size, Sort sort) {
-        if (from == null || size == null) {
-            return null;
-        } else {
-            if (from < 0 || size <= 0) {
-                throw new ValidationException("Указанные значения size/from меньше 0");
-            }
-        }
-        int page = from / size;
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        return pageRequest;
-    }
 }

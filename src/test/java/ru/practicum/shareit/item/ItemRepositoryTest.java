@@ -46,13 +46,12 @@ public class ItemRepositoryTest {
     @Test
     void findAllByOwnerOrderByIdAsc() {
         List<Item> byOwner = itemRepository.findAllByOwnerOrderByIdAsc(user2.getId(), PageRequest.ofSize(10));
-        assertEquals(byOwner, new ArrayList<>(Arrays.asList(item2, item3)));
+        assertEquals(new ArrayList<>(Arrays.asList(item2, item3)), byOwner);
     }
 
     @Test
     void searchByText() {
-        assertEquals(itemRepository.searchByText(
-                        "дрель", PageRequest.ofSize(10)),
-                new ArrayList<>(Arrays.asList(item1, item2)));
+        assertEquals(new ArrayList<>(Arrays.asList(item1, item2)),
+                itemRepository.searchByText("дрель", PageRequest.ofSize(10)));
     }
 }

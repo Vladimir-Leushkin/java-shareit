@@ -40,7 +40,7 @@ import static ru.practicum.shareit.booking.StatusType.CANCELED;
 public class ItemControllerTest {
 
     @MockBean
-    ItemServiceImpl itemService;
+    private ItemServiceImpl itemService;
     @Autowired
     private ObjectMapper mapper;
     @Autowired

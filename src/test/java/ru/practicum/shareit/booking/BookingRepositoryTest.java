@@ -58,27 +58,27 @@ public class BookingRepositoryTest {
     void findAllByBookerIdOrderByStartDesc() {
         List<Booking> bookingList = bookingRepository
                 .findAllByBookerIdOrderByStartDesc(user1.getId(), PageRequest.of(0, 10));
-        assertEquals(bookingList, new ArrayList<>(Arrays.asList(nextBooking, lastBooking)));
+        assertEquals(new ArrayList<>(Arrays.asList(nextBooking, lastBooking)), bookingList);
     }
 
     @Test
     void findBookingByItemIdAndEndIsBefore() {
         List<Booking> bookingList = bookingRepository
                 .findBookingByItemIdAndEndIsBefore(item1.getId(), LocalDateTime.now());
-        assertEquals(bookingList, new ArrayList<>(Collections.singletonList(lastBooking)));
+        assertEquals(new ArrayList<>(Collections.singletonList(lastBooking)), bookingList);
     }
 
     @Test
     void findBookingByItemIdAndStartIsAfter() {
         List<Booking> bookingList = bookingRepository
                 .findBookingByItemIdAndStartIsAfter(item1.getId(), LocalDateTime.now());
-        assertEquals(bookingList, new ArrayList<>(Collections.singletonList(nextBooking)));
+        assertEquals(new ArrayList<>(Collections.singletonList(nextBooking)), bookingList);
     }
 
     @Test
     void findAllByItemOwnerOrderByStartDesc() {
         List<Booking> bookingList = bookingRepository
                 .findAllByItemOwnerOrderByStartDesc(user2.getId(), PageRequest.of(0, 10));
-        assertEquals(bookingList, new ArrayList<>(Arrays.asList(nextBooking, lastBooking)));
+        assertEquals(new ArrayList<>(Arrays.asList(nextBooking, lastBooking)), bookingList);
     }
 }

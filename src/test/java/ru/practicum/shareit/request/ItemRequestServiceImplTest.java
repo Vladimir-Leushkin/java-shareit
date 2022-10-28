@@ -5,10 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.exeption.NotFoundException;
-import ru.practicum.shareit.exeption.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserService;
@@ -20,7 +18,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -35,13 +34,16 @@ public class ItemRequestServiceImplTest {
     private ItemRequest itemRequest1;
     private ItemRequestDto itemRequestDto1;
     private ItemRequest itemRequest2;
+    private MyPageRequest myPageRequest;
 
     @BeforeEach
     void beforeEach() {
         userService = mock(UserService.class);
         itemRequestRepository = mock(ItemRequestRepository.class);
         itemRequestMapper = mock(ItemRequestMapper.class);
-        itemRequestService = new ItemRequestServiceImpl(userService, itemRequestRepository, itemRequestMapper);
+        myPageRequest = mock(MyPageRequest.class);
+        itemRequestService = new ItemRequestServiceImpl(userService, itemRequestRepository, itemRequestMapper,
+                myPageRequest);
 
         user1 = new User(1L, "John", "john.doe@mail.com");
         user2 = new User(2L, "User", "user@mail.com");
@@ -60,7 +62,7 @@ public class ItemRequestServiceImplTest {
                 .thenReturn(itemRequest1);
         final ItemRequest saveItemRequest = itemRequestService.addRequest(user1.getId(), itemRequestDto1);
         assertNotNull(saveItemRequest);
-        assertEquals(saveItemRequest, itemRequest1);
+        assertEquals(itemRequest1, saveItemRequest);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(itemRequestRepository, times(1))
@@ -77,7 +79,7 @@ public class ItemRequestServiceImplTest {
         Page<ItemRequest> itemRequestPage1 = itemRequestService.findAllRequests(user1.getId(),
                 0, 10);
         assertNotNull(itemRequestPage1);
-        assertEquals(itemRequestPage1, itemRequestPage);
+        assertEquals(itemRequestPage, itemRequestPage1);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(itemRequestRepository, times(1))
@@ -92,7 +94,7 @@ public class ItemRequestServiceImplTest {
                 .thenReturn(List.of(itemRequest1));
         List<ItemRequest> itemRequestList = itemRequestService.findAllForRequestor(user1.getId());
         assertNotNull(itemRequestList);
-        assertEquals(itemRequestList, List.of(itemRequest1));
+        assertEquals(List.of(itemRequest1), itemRequestList);
         verify(userService, times(1))
                 .findUserById(user1.getId());
         verify(itemRequestRepository, times(1))
@@ -105,7 +107,7 @@ public class ItemRequestServiceImplTest {
                 .thenReturn(Optional.ofNullable(itemRequest1));
         final ItemRequest saveItemRequest = itemRequestService.findRequestById(itemRequest1.getId());
         assertNotNull(saveItemRequest);
-        assertEquals(saveItemRequest, itemRequest1);
+        assertEquals(itemRequest1, saveItemRequest);
         verify(itemRequestRepository, times(1))
                 .findById(itemRequest1.getId());
     }
@@ -130,28 +132,9 @@ public class ItemRequestServiceImplTest {
         findRequestById();
         final ItemRequest saveItemRequest = itemRequestService.getRequest(itemRequest1.getId(), user1.getId());
         assertNotNull(saveItemRequest);
-        assertEquals(saveItemRequest, itemRequest1);
+        assertEquals(itemRequest1, saveItemRequest);
         verify(userService, times(1))
                 .findUserById(user1.getId());
     }
 
-    @Test
-    void createPageableException() {
-        final ValidationException exception = Assertions.assertThrows(
-                ValidationException.class,
-                () -> itemRequestService.createPageable(-1, -1, Sort.unsorted()));
-        Assertions.assertEquals("Указанные значения size/from меньше 0", exception.getMessage());
-    }
-
-    @Test
-    void createPageable() {
-        PageRequest page = PageRequest.of(0, 10);
-        PageRequest page1 = itemRequestService.createPageable(0, 10, Sort.unsorted());
-        Assertions.assertEquals(page, page1);
-    }
-
-    @Test
-    void createPageableNull() {
-        assertNull(itemRequestService.createPageable(null, null, Sort.unsorted()));
-    }
 }

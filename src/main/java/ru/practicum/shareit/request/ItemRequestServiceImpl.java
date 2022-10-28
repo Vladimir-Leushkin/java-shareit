@@ -6,8 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.exeption.NotFoundException;
-import ru.practicum.shareit.exeption.ValidationException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.UserService;
@@ -19,10 +19,10 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class ItemRequestServiceImpl implements ItemRequestService {
-
     private final UserService userService;
     private final ItemRequestRepository itemRequestRepository;
     private final ItemRequestMapper itemRequestMapper;
+    private final MyPageRequest myPageRequest;
 
     @Override
     public ItemRequest addRequest(long userId, ItemRequestDto itemRequestDto) {
@@ -35,7 +35,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public Page<ItemRequest> findAllRequests(Long userId, Integer from, Integer size) {
-        PageRequest pageRequest = createPageable(from, size, Sort.unsorted());
+        PageRequest pageRequest = myPageRequest.createPageable(from, size, Sort.unsorted());
         User user = userService.findUserById(userId);
         Page<ItemRequest> itemRequests = itemRequestRepository
                 .findAllByRequestorIdIsNotOrderByCreatedDesc(userId, pageRequest);
@@ -66,16 +66,4 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return itemRequest;
     }
 
-    protected PageRequest createPageable(Integer from, Integer size, Sort sort) {
-        if (from == null || size == null) {
-            return null;
-        } else {
-            if (from < 0 || size <= 0) {
-                throw new ValidationException("Указанные значения size/from меньше 0");
-            }
-        }
-        int page = from / size;
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        return pageRequest;
-    }
 }

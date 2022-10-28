@@ -112,7 +112,6 @@ public class UserServiceTest {
                 NotFoundException.class,
                 () -> userService.findUserById(user.getId()));
         assertEquals("Не найден пользователь с id = " + user.getId(), exception.getMessage());
-
         verify(userRepository, times(1))
                 .findById(user.getId());
     }

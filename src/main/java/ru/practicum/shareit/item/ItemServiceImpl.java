@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.booking.*;
 import ru.practicum.shareit.booking.dto.BookingDtoToItem;
 import ru.practicum.shareit.exeption.NotFoundException;
@@ -44,11 +45,11 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
     private final BookingMapper bookingMapper;
     private final CommentMapper commentMapper;
-
+    private final MyPageRequest myPageRequest;
 
     @Override
     public List<ItemDtoWithBooking> getItems(long userId, Integer from, Integer size) {
-        PageRequest pageRequest = createPageable(from, size, Sort.unsorted());
+        PageRequest pageRequest = myPageRequest.createPageable(from, size, Sort.unsorted());
         List<Item> items = itemRepository.findAllByOwnerOrderByIdAsc(userId, pageRequest);
         log.info("Найден список вещей пользователя id ={}", userId);
         List<ItemDtoWithBooking> itemDtoWithBookings = items
@@ -132,7 +133,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<Item> searchByText(String text, Integer from, Integer size) {
-        PageRequest pageRequest = createPageable(from, size, Sort.unsorted());
+        PageRequest pageRequest = myPageRequest.createPageable(from, size, Sort.unsorted());
         List<Item> items = new ArrayList<>();
         if (text != null && !text.isBlank()) {
             items = itemRepository.searchByText(text.toLowerCase(), pageRequest);
@@ -199,16 +200,4 @@ public class ItemServiceImpl implements ItemService {
         return item;
     }
 
-    protected PageRequest createPageable(Integer from, Integer size, Sort sort) {
-        if (from == null || size == null) {
-            return null;
-        } else {
-            if (from < 0 || size <= 0) {
-                throw new ValidationException("Указанные значения size/from меньше 0");
-            }
-        }
-        int page = from / size;
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
-        return pageRequest;
-    }
 }
