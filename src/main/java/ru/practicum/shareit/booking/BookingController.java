@@ -7,6 +7,8 @@ import ru.practicum.shareit.booking.dto.BookingDtoShort;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import javax.websocket.server.PathParam;
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final BookingMapper bookingMapper;
 
     @GetMapping("{bookingId}")
     public BookingDto getBooking(
@@ -41,15 +44,19 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> getAllByBooker(
-            @RequestHeader("X-Sharer-User-Id") @NotNull long userId,
-            @RequestParam(defaultValue = "ALL") String state) {
-        return BookingMapper.toBookingsDto(bookingService.getAllByBooker(userId, state));
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @RequestParam(defaultValue = "ALL") String state,
+            @RequestParam(name = "from", defaultValue = "0") Integer from,
+            @RequestParam(name = "size", defaultValue = "10") Integer size) {
+        return BookingMapper.toBookingsDto(bookingService.getAllByBooker(userId, state, from, size));
     }
 
     @GetMapping("owner")
     public List<BookingDto> getAllByOwner(
             @RequestHeader("X-Sharer-User-Id") @NotNull long userId,
-            @RequestParam(defaultValue = "ALL") String state) {
-        return BookingMapper.toBookingsDto(bookingService.getAllByOwner(userId, state));
+            @RequestParam(defaultValue = "ALL") String state,
+            @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+            @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
+        return BookingMapper.toBookingsDto(bookingService.getAllByOwner(userId, state, from, size));
     }
 }

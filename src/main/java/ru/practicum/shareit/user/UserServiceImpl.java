@@ -18,9 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
-
     private final UserRepository repository;
-
+    private final UserMapper userMapper;
 
     @Override
     public List<User> getAllUsers() {
@@ -31,18 +30,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User saveUser(UserDto userDto) {
+    public UserDto saveUser(UserDto userDto) {
         User user = null;
         try {
             user = UserMapper.toUser(userDto);
         } catch (DataIntegrityViolationException e) {
-            throw new ValidationException("Указаны неверный формат электронной почты");
+            throw new ValidationException("Указан неверный формат электронной почты");
         }
         if (user.getEmail() != null) {
             try {
                 log.info("Добавлен новый пользователь : {}", user);
                 User saveUser = repository.save(user);
-                return saveUser;
+                return UserMapper.toUserDto(saveUser);
             } catch (DataIntegrityViolationException e) {
                 log.info("Пользователь с такой электронной почтой уже существует {}", user.getEmail());
                 throw new ConflictException("Пользователь с такой электронной почтой уже существует");
@@ -57,8 +56,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User updateUser(Long id, UserDto newUserDto) {
         User user = UserMapper.toUser(newUserDto);
-        User oldUser = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Не найден пользователь с id = " + id));
+        User oldUser = findUserById(id);
         if (user.getName() != null) {
             oldUser.setName(user.getName());
         }

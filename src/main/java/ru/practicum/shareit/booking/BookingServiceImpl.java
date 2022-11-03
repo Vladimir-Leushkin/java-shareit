@@ -2,8 +2,11 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.MyPageRequest;
 import ru.practicum.shareit.booking.dto.BookingDtoShort;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.exeption.ValidationException;
@@ -25,6 +28,8 @@ public class BookingServiceImpl implements BookingService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
+    private final BookingMapper bookingMapper;
+    private final MyPageRequest myPageRequest;
 
     @Override
     public Booking getById(Long userId, Long bookingId) {
@@ -73,9 +78,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getAllByBooker(Long userId, String state) {
+    public List<Booking> getAllByBooker(Long userId, String state, Integer from, Integer size) {
+        PageRequest pageRequest = myPageRequest.createPageable(from, size, Sort.unsorted());
         userService.findUserById(userId);
-        List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
+        List<Booking> bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageRequest);
         if (bookings.isEmpty()) {
             throw new NotFoundException("Ничего не найдено");
         }
@@ -85,9 +91,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getAllByOwner(Long userId, String state) {
+    public List<Booking> getAllByOwner(Long userId, String state, Integer from, Integer size) {
+        PageRequest pageRequest = myPageRequest.createPageable(from, size, Sort.unsorted());
         userService.findUserById(userId);
-        List<Booking> bookings = bookingRepository.findOwnerAll(userId);
+        List<Booking> bookings = bookingRepository.findAllByItemOwnerOrderByStartDesc(userId, pageRequest);
         List<Booking> bookingsState = getBookingsByState(state, bookings);
         log.info("Найдены бронирования вещей {}, пользователя ({}), ", bookingsState, userId);
         return bookingsState;
@@ -121,51 +128,53 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private Booking findBookingById(Long bookingId) {
+    @Override
+    public Booking findBookingById(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Не найдено бронирование с id = " + bookingId));
         return booking;
     }
 
-    private Item findItemById(Long itemId) {
+    protected Item findItemById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Не найдена вещь с id = " + itemId));
         return item;
     }
 
-    private void checkIsAvailableItem(Item item) {
+    protected void checkIsAvailableItem(Item item) {
         if (!item.getIsAvailable()) {
             throw new ValidationException("Вещь недоступна для бронирования");
         }
     }
 
-    private void checkItemNotOwner(Item item, long userId) {
+    protected void checkItemNotOwner(Item item, long userId) {
         if (item.getOwner().equals(userId)) {
             throw new NotFoundException("Нельзя бронировать свои вещи");
         }
     }
 
-    private void checkItemOwner(Item item, long userId) {
+    protected void checkItemOwner(Item item, long userId) {
         if (!item.getOwner().equals(userId)) {
             throw new NotFoundException("Подтвердить бронирование может только собственник вещи");
         }
     }
 
-    private void checkActualTime(Booking booking) {
+    protected void checkActualTime(Booking booking) {
         if (booking.getEnd().isBefore(booking.getStart()) || booking.getStart().isBefore(LocalDateTime.now())) {
             throw new ValidationException("Неверно указано время");
         }
     }
 
-    private void checkBookingWaiting(Booking booking) {
+    protected void checkBookingWaiting(Booking booking) {
         if (booking.getStatus() != StatusType.WAITING) {
             throw new ValidationException("Вещь уже забронирована");
         }
     }
 
-    private void checkApprovedFormat(Boolean approved) {
+    protected void checkApprovedFormat(Boolean approved) {
         if (approved == null) {
             throw new ValidationException("Ошибка подтверждения");
         }
     }
+
 }

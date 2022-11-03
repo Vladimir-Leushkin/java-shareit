@@ -16,6 +16,15 @@ import java.util.stream.Collectors;
 public class ItemMapper {
 
     public static ItemDto toItemDto(Item item) {
+        if (item.getRequest() != null) {
+            return new ItemDto(
+                    item.getId(),
+                    item.getName(),
+                    item.getDescription(),
+                    item.getIsAvailable(),
+                    item.getRequest().getId()
+            );
+        }
         return new ItemDto(
                 item.getId(),
                 item.getName(),
@@ -41,7 +50,8 @@ public class ItemMapper {
         );
     }
 
-    public static ItemDtoWithBooking toDtoWithBooking(Item item, BookingDtoToItem lastBooking, BookingDtoToItem nextBooking, List<CommentDto> comments) {
+    public static ItemDtoWithBooking toDtoWithBooking(Item item, BookingDtoToItem lastBooking,
+                                                      BookingDtoToItem nextBooking, List<CommentDto> comments) {
         return new ItemDtoWithBooking(
                 item.getId(),
                 item.getName(),
