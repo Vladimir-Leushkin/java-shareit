@@ -58,8 +58,8 @@ public class BookingServiceTest {
                 LocalDateTime.of(2022, 1, 1, 12, 0),
                 LocalDateTime.of(2022, 2, 1, 12, 0), item1, user1, CANCELED);
         bookingDtoShort = new BookingDtoShort(1L,
-                LocalDateTime.of(2023, 2,1,12,0),
-                LocalDateTime.of(2023,12,1,12,0));
+                LocalDateTime.of(2023, 2, 1, 12, 0),
+                LocalDateTime.of(2023, 12, 1, 12, 0));
         nextBooking = new Booking(2L,
                 LocalDateTime.of(2023, 2, 1, 12, 0),
                 LocalDateTime.of(2023, 12, 1, 12, 0), item1, user1, WAITING);
@@ -302,27 +302,11 @@ public class BookingServiceTest {
     }
 
     @Test
-    void checkActualTimeException() {
-        final ValidationException exception = Assertions.assertThrows(
-                ValidationException.class,
-                () -> bookingService.checkActualTime(lastBooking));
-        assertEquals("Неверно указано время", exception.getMessage());
-    }
-
-    @Test
     void checkBookingWaitingException() {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class,
                 () -> bookingService.checkBookingWaiting(lastBooking));
         assertEquals("Вещь уже забронирована", exception.getMessage());
-    }
-
-    @Test
-    void checkApprovedFormatException() {
-        final ValidationException exception = Assertions.assertThrows(
-                ValidationException.class,
-                () -> bookingService.checkApprovedFormat(null));
-        assertEquals("Ошибка подтверждения", exception.getMessage());
     }
 
 }

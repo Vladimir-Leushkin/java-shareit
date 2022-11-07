@@ -23,7 +23,7 @@ public class GatewayBookingController {
     private final BookingClient bookingClient;
 
     @GetMapping
-    public ResponseEntity<Object> getAllByBooker(@RequestHeader("X-Sharer-User-Id") long userId,
+    public ResponseEntity<Object> getAllByBooker(@RequestHeader("X-Sharer-User-Id") @NotNull long userId,
                                                  @RequestParam(name = "state", defaultValue = "all") String stateParam,
                                                  @PositiveOrZero @RequestParam(name = "from", defaultValue = "0")
                                                  Integer from,
@@ -45,7 +45,7 @@ public class GatewayBookingController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> addBooking(@RequestHeader("X-Sharer-User-Id") long userId,
+    public ResponseEntity<Object> addBooking(@RequestHeader("X-Sharer-User-Id") @NotNull long userId,
                                              @RequestBody @Valid BookItemRequestDto requestDto) {
         log.info("Creating booking {}, userId={}", requestDto, userId);
         return bookingClient.addBooking(userId, requestDto);
@@ -60,8 +60,8 @@ public class GatewayBookingController {
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<Object> getBooking(@RequestHeader("X-Sharer-User-Id") long userId,
-                                             @PathVariable Long bookingId) {
+    public ResponseEntity<Object> getBooking(@RequestHeader("X-Sharer-User-Id") @NotNull long userId,
+                                             @PathVariable @NotNull Long bookingId) {
         log.info("Get bookingId={}, userId={}", bookingId, userId);
         return bookingClient.getBooking(userId, bookingId);
     }

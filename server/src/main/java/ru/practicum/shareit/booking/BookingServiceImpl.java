@@ -49,7 +49,6 @@ public class BookingServiceImpl implements BookingService {
         Item item = findItemById(bookingDto.getItemId());
         Booking booking = BookingMapper.shortDtoToBooking(item, user, bookingDto);
         checkIsAvailableItem(item);
-        checkActualTime(booking);
         checkItemNotOwner(item, userId);
         Booking saveBooking = bookingRepository.save(booking);
         log.info("Пользователем id {}, подан запрос на бронирование вещи ({}), ", userId, item.getName());
@@ -64,7 +63,6 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = findBookingById(bookingId);
         Item item = findItemById(booking.getItem().getId());
         checkBookingWaiting(booking);
-        checkApprovedFormat(approved);
         checkItemOwner(item, userId);
         if (approved) {
             booking.setStatus(StatusType.APPROVED);
@@ -159,21 +157,9 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    protected void checkActualTime(Booking booking) {
-        if (booking.getEnd().isBefore(booking.getStart()) || booking.getStart().isBefore(LocalDateTime.now())) {
-            throw new ValidationException("Неверно указано время");
-        }
-    }
-
     protected void checkBookingWaiting(Booking booking) {
         if (booking.getStatus() != StatusType.WAITING) {
             throw new ValidationException("Вещь уже забронирована");
-        }
-    }
-
-    protected void checkApprovedFormat(Boolean approved) {
-        if (approved == null) {
-            throw new ValidationException("Ошибка подтверждения");
         }
     }
 

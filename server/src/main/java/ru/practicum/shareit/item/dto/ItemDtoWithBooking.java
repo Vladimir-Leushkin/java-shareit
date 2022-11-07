@@ -6,8 +6,6 @@ import lombok.Setter;
 import ru.practicum.shareit.booking.dto.BookingDtoToItem;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Getter
@@ -20,7 +18,7 @@ public class ItemDtoWithBooking extends ItemDto {
 
     private List<CommentDto> comments;
 
-    public ItemDtoWithBooking(Long id, @NotBlank String name, @NotBlank String description, @NotNull Boolean available,
+    public ItemDtoWithBooking(Long id, String name, String description, Boolean available,
                               BookingDtoToItem lastBooking,
                               BookingDtoToItem nextBooking,
                               List<CommentDto> comments
@@ -31,7 +29,7 @@ public class ItemDtoWithBooking extends ItemDto {
         this.comments = comments;
     }
 
-    public ItemDtoWithBooking(Long id, @NotBlank String name, @NotBlank String description, @NotNull Boolean available,
+    public ItemDtoWithBooking(Long id, String name, String description, Boolean available,
                               List<CommentDto> comments
     ) {
         super(id, name, description, available);

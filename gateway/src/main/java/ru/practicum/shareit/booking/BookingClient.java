@@ -12,6 +12,7 @@ import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.exception.ValidationException;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -52,6 +53,9 @@ public class BookingClient extends BaseClient {
 
 
     public ResponseEntity<Object> addBooking(long userId, BookItemRequestDto requestDto) {
+        if (requestDto.getEnd().isBefore(requestDto.getStart()) || requestDto.getStart().isBefore(LocalDateTime.now())) {
+            throw new ValidationException("Неверно указано время");
+        }
         return post("", userId, requestDto);
     }
 
