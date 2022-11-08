@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,9 +18,8 @@ public class UserController {
     @GetMapping
     public List<UserDto> getAllUsers(@RequestParam(name = "from", defaultValue = "0") Integer from,
                                      @RequestParam(name = "size", defaultValue = "10") Integer size) {
-        List<UserDto> userDto = new ArrayList<>();
         List<User> users = userService.getAllUsers();
-        userDto = users.stream().map(user -> UserMapper.toUserDto(user)).collect(Collectors.toList());
+        List<UserDto> userDto = users.stream().map(user -> UserMapper.toUserDto(user)).collect(Collectors.toList());
         return userDto;
     }
 

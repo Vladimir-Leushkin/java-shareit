@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.dto;
 
-import com.sun.istack.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -11,10 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @ToString
 public class BookingDtoShort {
-    @NotNull
     private Long itemId;
-    @NotNull
     private LocalDateTime start;
-    @NotNull
     private LocalDateTime end;
 }
